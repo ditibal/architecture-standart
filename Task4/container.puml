@@ -1,0 +1,38 @@
+@startuml
+!include <C4/C4_Component>
+
+Person(admin, "Администратор АБС", "Управляет ставками")
+
+System_Boundary(abs_boundary, "АБС") {
+    Component(rate_service, "Сервис ставок", "PL/SQL", "Управление депозитными ставками")
+    Component(csv_generator, "Генератор CSV", "PL/SQL", "Формирование файла со ставками")
+    Component(sftp_client, "SFTP-клиент", "Delphi", "Отправка файлов на SFTP-сервер")
+
+    Rel(admin, rate_service, "Обновляет ставки")
+    Rel(rate_service, csv_generator, "Передает данные ставок")
+    Rel(csv_generator, sftp_client, "Передает CSV-файл")
+}
+
+System(sftp_server, "SFTP-сервер", "", "Хранение и предоставление файлов")
+
+System_Boundary(bank_crm_boundary, "CRM кол-центра") {
+    Component(file_loader, "Загрузчик файлов", "Java", "Ручная загрузка ставок")
+    Component(rates_db, "База ставок", "PostgreSQL", "Хранение актуальных ставок")
+    Component(ui_component, "Интерфейс оператора", "React.js", "Отображение ставок")
+
+    Rel(file_loader, rates_db, "Обновляет данные")
+    Rel(rates_db, ui_component, "Предоставляет данные")
+}
+
+System_Boundary(partner_crm_boundary, "CRM партнёра") {
+    Component(auto_loader, "Автозагрузчик", "Внешняя система", "Автоматическая проверка обновлений")
+    Component(partner_db, "База данных", "Внешняя СУБД", "Хранение ставок")
+
+    Rel(auto_loader, partner_db, "Обновляет данные")
+}
+
+Rel(sftp_client, sftp_server, "Загружает CSV-файл", "SFTP")
+Rel(sftp_server, file_loader, "Предоставляет файл для загрузки", "SFTP")
+Rel(sftp_server, auto_loader, "Предоставляет файл для автоматической загрузки", "SFTP")
+
+@enduml

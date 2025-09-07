@@ -1,0 +1,51 @@
+@startuml
+!include <C4/C4_Container>
+
+Person(new_client, "Новый клиент", "Подает заявку через сайт")
+Person(existing_client, "Существующий клиент", "Открывает депозит в интернет-банке")
+Person(backoffice_manager, "Менеджер бэк-офиса", "Обрабатывает заявки")
+Person(admin, "Администратор", "Управляет ставками")
+
+System_Boundary(online_bank_boundary, "Интернет-банк") {
+    Container(web_ui, "Веб-интерфейс", "ASP.NET MVC", "Пользовательский интерфейс")
+    Container(auth_service, "Сервис авторизации", ".NET", "Аутентификация клиентов")
+    Container(deposit_service, "Сервис депозитов", ".NET", "Обработка операций с депозитами")
+    Container(sms_service, "Сервис SMS", ".NET", "Отправка SMS-подтверждений")
+    ContainerDb(online_bank_db, "База данных", "MS SQL", "Хранение данных интернет-банка")
+
+    Rel(web_ui, auth_service, "Проверяет авторизацию", "HTTP")
+    Rel(web_ui, deposit_service, "Отправляет запросы на депозиты", "HTTP")
+    Rel(deposit_service, sms_service, "Запрашивает отправку SMS", "HTTP")
+    Rel(auth_service, online_bank_db, "Читает/пишет данные", "SQL")
+    Rel(deposit_service, online_bank_db, "Читает/пишет данные", "SQL")
+}
+
+System_Boundary(abs_boundary, "АБС") {
+    Container(abs_client, "Клиент АБС", "Delphi", "Десктопное приложение")
+    Container(abs_core, "Ядро АБС", "PL/SQL", "Бизнес-логика системы")
+    Container(rate_service, "Сервис ставок", "PL/SQL", "Управление депозитными ставками")
+    ContainerDb(abs_db, "База данных АБС", "Oracle", "Основное хранилище данных банка")
+
+    Rel(abs_client, abs_core, "Вызывает операции", "SQL")
+    Rel(abs_core, rate_service, "Получает ставки", "SQL")
+    Rel(abs_core, abs_db, "Читает/пишет данные", "SQL")
+    Rel(rate_service, abs_db, "Читает/пишет данные ставок", "SQL")
+}
+
+System_Ext(crm_system, "CRM кол-центра", "Java Spring Boot")
+System_Ext(sms_gateway, "СМС-шлюз", "Внешняя система")
+System_Ext(site_system, "Сайт", "PHP+React.js")
+
+' Связи между системами
+Rel(new_client, site_system, "Подает заявку")
+Rel(existing_client, web_ui, "Авторизуется и работает")
+Rel(backoffice_manager, abs_client, "Обрабатывает заявки")
+Rel(admin, abs_client, "Управляет ставками")
+
+Rel(site_system, crm_system, "Передает заявки", "HTTPS/TLS")
+Rel(deposit_service, abs_core, "Создает заявки на депозит", "Прямое SQL соединение")
+Rel(sms_service, sms_gateway, "Отправляет SMS", "API")
+Rel(abs_core, sms_gateway, "Отправляет уведомления", "API")
+Rel(rate_service, crm_system, "Синхронизирует ставки", "Файловый обмен")
+
+@enduml
