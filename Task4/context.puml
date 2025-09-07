@@ -1,0 +1,21 @@
+plantuml
+@startuml
+!include <C4/C4_Context>
+
+Person(operator, "Оператор кол-центра", "Консультирует клиентов по ставкам")
+Person(partner_operator, "Оператор партнёра", "Консультирует клиентов по ставкам")
+Person(admin, "Администратор АБС", "Управляет ставками депозитов")
+
+System(abs, "АБС", "Delphi + Oracle", "Автоматизированная банковская система")
+System(bank_crm, "CRM кол-центра", "Java Spring Boot", "Система управления обращениями")
+System(partner_crm, "CRM партнёра", "Внешняя система", "Система партнерского кол-центра")
+System(sftp_server, "SFTP-сервер", "", "Сервер для безопасной передачи файлов")
+
+Rel(admin, abs, "Управляет ставками депозитов")
+Rel(operator, bank_crm, "Просматривает актуальные ставки")
+Rel(partner_operator, partner_crm, "Просматривает актуальные ставки")
+Rel(abs, sftp_server, "Выгружает CSV-файл с ставками", "SFTP")
+Rel(sftp_server, bank_crm, "Предоставляет файл для загрузки", "SFTP")
+Rel(sftp_server, partner_crm, "Предоставляет файл для автоматической загрузки", "SFTP")
+
+@enduml

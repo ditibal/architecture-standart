@@ -1,0 +1,26 @@
+@startuml
+!include <C4/C4_Context>
+
+Person(new_client, "Новый клиент", "Физическое лицо, подающее заявку через сайт")
+Person(existing_client, "Существующий клиент", "Клиент с доступом к интернет-банку")
+Person(backoffice_manager, "Менеджер бэк-офиса", "Обрабатывает заявки в АБС")
+Person(admin, "Администратор", "Управляет ставками в АБС")
+
+System(site, "Сайт", "PHP+React.js", "Веб-сайт банка для подачи заявок")
+System(online_bank, "Интернет-банк", "ASP.NET MVC 4.5 + MS SQL", "Система онлайн-банкинга")
+System(abs, "АБС", "Delphi + Oracle", "Автоматизированная банковская система")
+System(crm, "CRM кол-центра", "Java Spring Boot + PostgreSQL", "Система управления обращениями")
+System(sms_system, "Система уведомлений", "", "Отправка SMS-сообщений")
+
+Rel(new_client, site, "Подает заявку на депозит (ФИО, телефон)")
+Rel(existing_client, online_bank, "Открывает депозит онлайн")
+Rel(backoffice_manager, abs, "Обрабатывает заявки")
+Rel(admin, abs, "Управляет ставками")
+
+Rel(site, crm, "Передает зашифрованные данные заявки", "HTTPS/TLS")
+Rel(online_bank, abs, "Создает заявку на депозит", "Прямое подключение к БД")
+Rel(abs, sms_system, "Отправляет SMS-уведомления")
+Rel(crm, sms_system, "Отправляет SMS-уведомления")
+Rel(abs, crm, "Синхронизация данных о клиентах")
+
+@enduml
